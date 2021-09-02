@@ -7,7 +7,7 @@ Resources:
       TemplateURL: https://s3.amazonaws.com/aws-codedeploy-us-east-1/templates/latest/CodeDeploy_SampleCF_Template.json
       Parameters:
         InstanceCount: 1
-        InstanceType: t3.micro
+        InstanceType: t1.micro
         KeyPairName: adesk
         OperatingSystem: Linux
         SSHLocation: 0.0.0.0/0
