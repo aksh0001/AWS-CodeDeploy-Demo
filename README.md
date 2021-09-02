@@ -25,6 +25,6 @@ The AWS Console may be the easiest way to achieve this. Create a CodeDeploy EC2 
 `TestApp` (the GitHub Actions CI expects this name) and a Deployment Group called `TestAppDepGrp`. In that deployment
 group:
 - Attach the Service Role created from the previous stack creation
-- Choose EC2 as the Environment Configuration 
+- Choose EC2 as the Environment Configuration and use the Tag key: `Name` and the Tag value `CodeDeployEC2Stack`
 - Disable load balancing
 - Use an in-place, all-at-once deployment
