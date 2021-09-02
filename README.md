@@ -4,7 +4,7 @@ Demo tutorial using AWS CodeDeploy via GitHub.
 
 ## Prerequisities
 - AWS CLI
-- EC2 Key Pair with the name `adesk` (used in the GitHub CI script)
+- EC2 Key Pair with the name `adesk` (used in the CF stack)
 - Calling IAM user with necessary permissions
 
 ## Push the CF stack to AWS
