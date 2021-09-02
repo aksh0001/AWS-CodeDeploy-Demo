@@ -1,0 +1,17 @@
+# See nested stacks: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-stack.html
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  # A nested stack from https://docs.aws.amazon.com/codedeploy/latest/userguide/instances-ec2-create-cloudformation-template.html#instances-ec2-create-cloudformation-template-cli
+  CodeDeployEC2Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aws-codedeploy-us-east-1/templates/latest/CodeDeploy_SampleCF_Template.json
+      Parameters:
+        InstanceCount: 1
+        InstanceType: t1.micro
+        KeyPairName: adesk
+        OperatingSystem: Linux
+        SSHLocation: 0.0.0.0/0
+        TagKey: Name
+        TagValue: CodeDeployEC2Stack
+
