@@ -1,7 +1,6 @@
 # See nested stacks: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-stack.html
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
-  # A nested stack from https://docs.aws.amazon.com/codedeploy/latest/userguide/instances-ec2-create-cloudformation-template.html#instances-ec2-create-cloudformation-template-cli
   CodeDeployEC2Stack:
     Type: AWS::CloudFormation::Stack
     Properties:
