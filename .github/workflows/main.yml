@@ -20,7 +20,7 @@ jobs:
         id: deploy
         run: |
           aws deploy create-deployment \
-            --application-name TestApp \
-            --deployment-group-name TestAppDepGrp \
-            --deployment-config-name CodeDeployDefault.OneAtATime \
+            --application-name ${{ secrets.AWS_CD_APPLICATION }} \
+            --deployment-group-name ${{ secrets.AWS_CD_DEPLOYMENT_GROUP }} \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
             --github-location repository=${{ github.repository }},commitId=${{ github.sha }}

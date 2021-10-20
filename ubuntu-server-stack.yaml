@@ -1,0 +1,143 @@
+# References:
+# -https://aws.amazon.com/premiumsupport/knowledge-center/install-codedeploy-agent-cfn-init/
+# -https://docs.aws.amazon.com/codedeploy/latest/userguide/codedeploy-agent-operations-install-ubuntu.html
+# -https://github.com/awslabs/codedeploy-blue-green/blob/master/CDBlueGreen.yaml
+# -https://github.com/awslabs/aws-cloudformation-templates/blob/master/aws/solutions/OperatingSystems/ubuntu20.04LTS_cfn-hup.cfn.yaml
+# -https://lono.cloud/docs/configsets/debugging/
+AWSTemplateFormatVersion: "2010-09-09"
+Description: 'CodeDeploy Agent-configured Ubuntu Server'
+Parameters:
+  EC2KPName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  EC2SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instance
+    Type: String
+    MinLength: 9
+    MaxLength: 18
+    Default: 0.0.0.0/0
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  EC2InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues: [ t1.micro, t2.nano, t2.micro, t2.small, t2.medium, t2.large,
+                     m1.small, m1.medium, m1.large, m1.xlarge, m2.xlarge, m2.2xlarge,
+                     m2.4xlarge, m3.medium, m3.large, m3.xlarge, m3.2xlarge, m4.large,
+                     m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge, c1.medium, c1.xlarge,
+                     c3.large, c3.xlarge, c3.2xlarge, c3.4xlarge, c3.8xlarge, c4.large,
+                     c4.xlarge, c4.2xlarge, c4.4xlarge, c4.8xlarge, g2.2xlarge, g2.8xlarge,
+                     r3.large, r3.xlarge, r3.2xlarge, r3.4xlarge, r3.8xlarge, i2.xlarge,
+                     i2.2xlarge, i2.4xlarge, i2.8xlarge, d2.xlarge, d2.2xlarge, d2.4xlarge,
+                     d2.8xlarge, hi1.4xlarge, hs1.8xlarge, cr1.8xlarge, cc2.8xlarge, cg1.4xlarge ]
+  EC2InstanceAMI: # Uses the latest Ubuntu AMI (See https://stackoverflow.com/a/67948235/15507541)
+    Description: Managed AMI ID for EC2 Instance
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/focal/stable/current/amd64/hvm/ebs-gp2/ami-id
+  EC2TagKey:
+    Type: String
+    Default: 'SampleEC2Key'
+  EC2TagValue:
+    Type: String
+    Default: 'SampleEC2Value'
+
+Resources:
+  SampleEC2InstanceProfileRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: 'Role attached to the Instance Profile'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: 'ec2.amazonaws.com'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy
+  SampleEC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref SampleEC2InstanceProfileRole
+  SampleEC2SG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref EC2SSHLocation
+  SampleEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref EC2InstanceType
+      ImageId: !Ref EC2InstanceAMI
+      KeyName: !Ref EC2KPName
+      SecurityGroups:
+        - !Ref SampleEC2SG
+      IamInstanceProfile: !Ref SampleEC2InstanceProfile
+      Tags:
+        - Key: !Ref EC2TagKey
+          Value: !Ref EC2TagValue
+      UserData: # Install cfn bootstrap and invoke cfn-init
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update -y
+          mkdir -p /opt/aws/bin
+          wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          python3 -m easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-py3-latest.tar.gz
+
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SampleEC2 --region ${AWS::Region}
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            apt:
+              ruby-full: [ ]
+          files:
+            /home/ubuntu/install:  # Download CodeDeploy agent
+              source: !Sub "https://aws-codedeploy-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/latest/install"
+              mode: "000755"
+          commands:
+            00-install-agent:
+              command: "./install auto"
+              cwd: "/home/ubuntu/"
+            01-cfn-signal:  # Send success signal to CF
+              command: !Sub "/opt/aws/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource SampleEC2 --region ${AWS::Region}"
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+  CDServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: 'Service role for CodeDeploy'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: 'codedeploy.amazonaws.com'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+  CDSampleApp:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: 'CDSampleApp'
+      ComputePlatform: Server
+  CDSampleAppDepGrp:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref CDSampleApp
+      DeploymentConfigName: CodeDeployDefault.AllAtOnce
+      DeploymentGroupName: 'CDSampleAppDepGrp'
+      DeploymentStyle:
+        DeploymentType: IN_PLACE
+        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+      Ec2TagFilters:
+        - Key: !Ref EC2TagKey
+          Value: !Ref EC2TagValue
+          Type: KEY_AND_VALUE
+      ServiceRoleArn: !GetAtt CDServiceRole.Arn

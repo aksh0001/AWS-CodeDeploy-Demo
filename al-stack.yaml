@@ -1,5 +1,11 @@
 # See nested stacks: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-stack.html
 AWSTemplateFormatVersion: 2010-09-09
+Description: 'CodeDeploy Agent-configured Amazon Linux Server'
+Parameters:
+  EC2KPName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
 Resources:
   CodeDeployEC2Stack:
     Type: AWS::CloudFormation::Stack
@@ -8,9 +14,8 @@ Resources:
       Parameters:
         InstanceCount: 1
         InstanceType: t1.micro
-        KeyPairName: adesk
+        KeyPairName: !Ref EC2KPName
         OperatingSystem: Linux
         SSHLocation: 0.0.0.0/0
         TagKey: Name
         TagValue: CodeDeployEC2Stack
-
