@@ -38,10 +38,10 @@ Parameters:
     Default: /aws/service/canonical/ubuntu/server/focal/stable/current/amd64/hvm/ebs-gp2/ami-id
   EC2TagKey:
     Type: String
-    Default: 'SampleEC2Key'
+    Default: 'Name'
   EC2TagValue:
     Type: String
-    Default: 'SampleEC2Value'
+    Default: 'SampleEC2'
 
 Resources:
   SampleEC2InstanceProfileRole:
