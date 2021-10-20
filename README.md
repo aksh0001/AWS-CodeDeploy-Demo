@@ -76,3 +76,8 @@ Example command:
 ```bash
 aws cloudformation create-stack --stack-name=CodeDeployEC2StackWrapper  --template-body=file:///home/akshay/Desktop/Dev/Tutes/AWS-CodeDeploy-Demo/ubuntu-server-stack.yaml --capabilities=CAPABILITY_IAM --region us-east-1 --parameters ParameterKey=EC2KPName,ParameterValue=adesk
 ```
+
+## Viewing Output
+
+The sample application serves a static `index.html` via Apache WebServer on HTTP port 80. Simply visit the instance's
+IPv4 address using the HTTP protocol.
