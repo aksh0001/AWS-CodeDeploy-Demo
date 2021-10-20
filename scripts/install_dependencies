@@ -1,3 +1,8 @@
 #!/bin/bash
-yum install -y httpd
-
+if [  -n "$(uname -a | grep Ubuntu)" ]; then
+    sudo apt-get update -y && sudo apt-get upgrade -y
+    sudo apt-get install httpd
+else
+    yum update -y
+    yum install -y httpd
+fi
