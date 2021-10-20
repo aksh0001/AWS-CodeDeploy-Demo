@@ -1,6 +1,12 @@
 #!/bin/bash
-isExistApp = `pgrep httpd`
-if [[ -n  $isExistApp ]]; then
-    service httpd stop        
+if [  -n "$(uname -a | grep Ubuntu)" ]; then
+    isExistApp = `pgrep apache2`
+    if [[ -n  $isExistApp ]]; then
+        sudo systemctl stop apache2
+    fi
+else
+  isExistApp = `pgrep httpd`
+  if [[ -n  $isExistApp ]]; then
+      service httpd stop
+  fi
 fi
-

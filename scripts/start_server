@@ -1,3 +1,6 @@
 #!/bin/bash
-service httpd start
-
+if [  -n "$(uname -a | grep Ubuntu)" ]; then
+  sudo systemctl start apache2
+else
+  service httpd start
+fi
