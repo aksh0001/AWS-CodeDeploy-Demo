@@ -54,10 +54,11 @@ The stack covers:
 
 - An Ubuntu Server EC2 Instance configured with CodeDeploy agent
   using [cfn-init](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-init.html) helper script
-    - Associated [Security Group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html)
-    - Associated [EC2 Instance Profile](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)
-    that allows our EC2 instance to access S3 to obtain our application bundle
-    - An [IAM Role](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) attached to the
+  - Associated [Security Group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html) that opens
+    up the SSH and HTTP ports
+  - Associated [EC2 Instance Profile](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)
+  that allows our EC2 instance to access S3 to obtain our application bundle
+  - An [IAM Role](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) attached to the
       Instance Profile mentioned above
 - A CodeDeploy Application, and
   a [DeploymentGroup](https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-groups.html#deployment-group-server)
